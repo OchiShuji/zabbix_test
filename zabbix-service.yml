@@ -24,4 +24,4 @@ spec:
     port: 10051
     targetPort: 10051
     name: zabbix-server-1
-  externalIPs: []
+  externalIPs: ['54.168.45.70']
