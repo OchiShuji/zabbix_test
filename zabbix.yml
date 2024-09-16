@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zabbix-deployment
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: zabbix
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: zabbix
+    spec:
+      containers:
+      - name: zabbix
+        image: zabbix/zabbix-server-mysql:alpine-5.4-latest
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-zabbix
+              key: username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-zabbix
+              key: password
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-root
+              key:  password
+        - name: DB_SERVER_HOST
+          value: mysql-0.mysql
+        ports:
+        - containerPort: 10051
+        - containerPort: 10050
+      - name: zabbix-web
+        image: zabbix/zabbix-web-apache-mysql:alpine-5.4-latest
+        env:
+        - name: ZABBIX_SERVER_HOST
+          value: 127.0.0.1
+        - name: DB_SERVER_HOST
+          value: mysql-0.mysql
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-zabbix
+              key: username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-zabbix
+              key: password
+        ports:
+        - containerPort: 8080
+      - name: zabbix-agent
+        image:  zabbix/zabbix-agent:alpine-5.4-latest
+        env:
+        - name: ZBX_SERVER_HOST
+          value: 127.0.0.1
+        - name: ZBX_HOSTNAME
+          value: localhost
+      
